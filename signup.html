@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sisterhood Initiative - Sign Up | Man Up! Inc.</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --forest-green: #1B5E20;
+            --gold: #C9A227;
+            --gold-light: #E6C84A;
+            --cream: #FDF8E8;
+            --charcoal: #1A1A1A;
+            --gray-600: #4A5568;
+            --gray-400: #A0AEC0;
+            --white: #FFFFFF;
+            --error-red: #C53030;
+            --success-green: #276749;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--forest-green) 0%, #2E7D32 50%, var(--gold) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            max-width: 520px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--forest-green) 0%, #2E7D32 100%);
+            color: var(--white);
+            padding: 32px 40px;
+            text-align: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .logo-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .org-name {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.05em;
+        }
+        
+        .header h1 {
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--white);
+        }
+        
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .form-content {
+            padding: 32px 40px 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: var(--charcoal);
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .required {
+            color: var(--error-red);
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: var(--white);
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--forest-green);
+            box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.1);
+        }
+        
+        input.error, textarea.error, select.error {
+            border-color: var(--error-red);
+            box-shadow: 0 0 0 3px rgba(197, 48, 48, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .field-error {
+            color: var(--error-red);
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .field-error.show {
+            display: block;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--cream);
+            border-radius: 8px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: var(--forest-green);
+        }
+        
+        .checkbox-group label {
+            margin: 0;
+            font-weight: 400;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--forest-green) 0%, #2E7D32 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(27, 94, 32, 0.4);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .message {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+        
+        .message.success {
+            background: #C6F6D5;
+            color: var(--success-green);
+            border: 1px solid #9AE6B4;
+        }
+        
+        .message.error {
+            background: #FED7D7;
+            color: var(--error-red);
+            border: 1px solid #FC8181;
+        }
+        
+        .message.show {
+            display: block;
+        }
+        
+        /* =============== THANK YOU SCREEN =============== */
+        .thank-you-screen {
+            display: none;
+            text-align: center;
+            padding: 48px 40px;
+        }
+        
+        .thank-you-screen.show {
+            display: block;
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--forest-green) 0%, #2E7D32 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        .success-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: var(--white);
+        }
+        
+        .thank-you-screen h2 {
+            font-family: 'Libre Baskerville', serif;
+            color: var(--forest-green);
+            font-size: 2rem;
+            margin-bottom: 12px;
+            animation: fadeInUp 0.5s ease-out 0.2s both;
+        }
+        
+        .thank-you-screen .welcome-text {
+            color: var(--gray-600);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            animation: fadeInUp 0.5s ease-out 0.3s both;
+        }
+        
+        .thank-you-screen .name-display {
+            color: var(--forest-green);
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 32px;
+            animation: fadeInUp 0.5s ease-out 0.4s both;
+        }
+        
+        .next-steps {
+            background: var(--cream);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: left;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.5s ease-out 0.5s both;
+        }
+        
+        .next-steps h3 {
+            color: var(--charcoal);
+            font-size: 1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .next-steps ul {
+            list-style: none;
+        }
+        
+        .next-steps li {
+            color: var(--gray-600);
+            padding: 8px 0;
+            padding-left: 28px;
+            position: relative;
+            font-size: 14px;
+        }
+        
+        .next-steps li::before {
+            content: '✓';
+            color: var(--forest-green);
+            font-weight: 700;
+            position: absolute;
+            left: 0;
+        }
+        
+        .contact-info {
+            color: var(--gray-600);
+            font-size: 14px;
+            animation: fadeInUp 0.5s ease-out 0.6s both;
+        }
+        
+        .contact-info a {
+            color: var(--forest-green);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+        
+        .another-btn {
+            margin-top: 24px;
+            padding: 12px 24px;
+            background: transparent;
+            border: 2px solid var(--forest-green);
+            color: var(--forest-green);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            animation: fadeInUp 0.5s ease-out 0.7s both;
+        }
+        
+        .another-btn:hover {
+            background: var(--forest-green);
+            color: var(--white);
+        }
+        
+        .form-container.hidden {
+            display: none;
+        }
+        
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Debug panel */
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1A1A1A;
+            color: #4ADE80;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 300px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .debug-panel.show {
+            display: block;
+        }
+        
+        @media (max-width: 480px) {
+            .form-content, .header {
+                padding: 24px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- =============== FORM CONTAINER =============== -->
+        <div class="form-container" id="formContainer">
+            <div class="header">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="50" cy="50" r="48" fill="#C9A227"/>
+                            <path d="M50 20C55 20 60 25 60 32C60 39 55 45 50 45C45 45 40 39 40 32C40 25 45 20 50 20Z" fill="#1B5E20"/>
+                            <path d="M35 52C35 52 38 48 50 48C62 48 65 52 65 52L68 80C68 82 66 84 64 84H36C34 84 32 82 32 80L35 52Z" fill="#1B5E20"/>
+                            <circle cx="30" cy="55" r="8" fill="#1B5E20"/>
+                            <circle cx="70" cy="55" r="8" fill="#1B5E20"/>
+                            <circle cx="30" cy="55" r="5" fill="#C9A227"/>
+                            <circle cx="70" cy="55" r="5" fill="#C9A227"/>
+                        </svg>
+                    </div>
+                    <span class="org-name">Man Up! Inc.</span>
+                </div>
+                <h1>Sisterhood Initiative</h1>
+                <p>Join our community of empowered women</p>
+            </div>
+            
+            <div class="form-content">
+                <div id="message" class="message"></div>
+                
+                <form id="signupForm" novalidate>
+                    <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" id="fullName" required placeholder="Jane Smith" autocomplete="name">
+                        <div class="field-error" id="fullNameError">Please enter your full name</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email Address <span class="required">*</span></label>
+                        <input type="email" id="email" required placeholder="jane@example.com" autocomplete="email">
+                        <div class="field-error" id="emailError">Please enter a valid email address</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Phone Number <span class="required">*</span></label>
+                        <input type="tel" id="phone" required placeholder="(555) 123-4567" autocomplete="tel">
+                        <div class="field-error" id="phoneError">Please enter a valid phone number</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>How did you hear about us?</label>
+                        <select id="referralSource">
+                            <option value="">Select an option</option>
+                            <option value="social_media">Social Media</option>
+                            <option value="friend">Friend/Family Referral</option>
+                            <option value="community_event">Community Event</option>
+                            <option value="school">School/Educational Institution</option>
+                            <option value="healthcare">Healthcare Provider</option>
+                            <option value="church">Church/Faith Organization</option>
+                            <option value="workplace">Workplace</option>
+                            <option value="flyer">Flyer/Poster</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>What are you hoping to gain from the Sisterhood Initiative?</label>
+                        <textarea id="goals" placeholder="Share your goals and interests..." maxlength="1000"></textarea>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="newsletter" checked>
+                        <label for="newsletter">I'd like to receive updates, resources, and event invitations via email</label>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submitBtn">Submit Registration</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- =============== THANK YOU SCREEN =============== -->
+        <div class="thank-you-screen" id="thankYouScreen">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+            </div>
+            <h2>Registration Complete!</h2>
+            <p class="welcome-text">Welcome to the Sisterhood Initiative</p>
+            <p class="name-display" id="registeredName"></p>
+            
+            <div class="next-steps">
+                <h3>📋 What happens next:</h3>
+                <ul>
+                    <li>You'll receive a welcome email within 24 hours</li>
+                    <li>Our team will reach out to schedule an orientation</li>
+                    <li>You'll get access to our resource library</li>
+                    <li>Connect with other women in our community</li>
+                </ul>
+            </div>
+            
+            <p class="contact-info">
+                Questions? Contact us at<br>
+                <a href="mailto:sisterhood@manupinc.org">sisterhood@manupinc.org</a>
+            </p>
+            
+            <button class="another-btn" onclick="showForm()">Register Another Person</button>
+        </div>
+    </div>
+    
+    <div class="debug-panel" id="debugPanel"></div>
+    
+    <script>
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        // TODO: Update these values with your Sisterhood project credentials
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        
+        // Use a different variable name to avoid conflict with global 'supabase' from CDN
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Debug mode - press Ctrl+Shift+D to toggle
+        let debugMode = false;
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                debugMode = !debugMode;
+                document.getElementById('debugPanel').classList.toggle('show', debugMode);
+            }
+        });
+        
+        function debugLog(msg) {
+            console.log(msg);
+            if (debugMode) {
+                const panel = document.getElementById('debugPanel');
+                panel.innerHTML = `<strong>Debug:</strong><br>${msg}`;
+            }
+        }
+        
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const form = document.getElementById('signupForm');
+        const messageDiv = document.getElementById('message');
+        const submitBtn = document.getElementById('submitBtn');
+        const formContainer = document.getElementById('formContainer');
+        const thankYouScreen = document.getElementById('thankYouScreen');
+        const registeredNameEl = document.getElementById('registeredName');
+        
+        // ============================================
+        // VALIDATION FUNCTIONS
+        // ============================================
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        function validatePhone(phone) {
+            const digitsOnly = phone.replace(/\D/g, '');
+            return digitsOnly.length >= 10 && digitsOnly.length <= 15;
+        }
+        
+        function formatPhoneNumber(phone) {
+            const digitsOnly = phone.replace(/\D/g, '');
+            if (digitsOnly.length === 10) {
+                return `(${digitsOnly.slice(0,3)}) ${digitsOnly.slice(3,6)}-${digitsOnly.slice(6)}`;
+            }
+            return phone;
+        }
+        
+        function showFieldError(fieldId, show = true) {
+            const field = document.getElementById(fieldId);
+            const error = document.getElementById(fieldId + 'Error');
+            if (show) {
+                field.classList.add('error');
+                if (error) error.classList.add('show');
+            } else {
+                field.classList.remove('error');
+                if (error) error.classList.remove('show');
+            }
+        }
+        
+        function validateForm() {
+            let isValid = true;
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            if (fullName.length < 2) {
+                showFieldError('fullName', true);
+                isValid = false;
+            } else {
+                showFieldError('fullName', false);
+            }
+            
+            const email = document.getElementById('email').value.trim();
+            if (!validateEmail(email)) {
+                showFieldError('email', true);
+                isValid = false;
+            } else {
+                showFieldError('email', false);
+            }
+            
+            const phone = document.getElementById('phone').value.trim();
+            if (!validatePhone(phone)) {
+                showFieldError('phone', true);
+                isValid = false;
+            } else {
+                showFieldError('phone', false);
+            }
+            
+            return isValid;
+        }
+        
+        // ============================================
+        // UI FUNCTIONS
+        // ============================================
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type} show`;
+            setTimeout(() => {
+                messageDiv.className = 'message';
+            }, 6000);
+        }
+        
+        function showThankYou(name) {
+            registeredNameEl.textContent = name;
+            formContainer.classList.add('hidden');
+            thankYouScreen.classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function showForm() {
+            thankYouScreen.classList.remove('show');
+            formContainer.classList.remove('hidden');
+            form.reset();
+            document.getElementById('newsletter').checked = true;
+        }
+        
+        // ============================================
+        // FORM SUBMISSION
+        // ============================================
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                showMessage('Please correct the errors above', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            
+            // Build form data matching the simplified database schema
+            const formData = {
+                full_name: fullName,
+                email: document.getElementById('email').value.trim().toLowerCase(),
+                phone: formatPhoneNumber(phone),
+                referral_source: document.getElementById('referralSource').value || null,
+                goals: document.getElementById('goals').value.trim() || null,
+                newsletter_opt_in: document.getElementById('newsletter').checked,
+                status: 'pending',
+                entry_source: 'online'
+            };
+            
+            debugLog(`Submitting: ${JSON.stringify(formData, null, 2)}`);
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('sisterhood_signups')
+                    .insert([formData])
+                    .select();
+                
+                if (error) {
+                    debugLog(`Error: ${error.message} (Code: ${error.code})`);
+                    
+                    if (error.code === '23505' || error.message.includes('duplicate')) {
+                        showMessage('This email is already registered. Please use a different email or contact us.', 'error');
+                    } else if (error.code === '42P01') {
+                        showMessage('Database table not found. Please run the setup SQL in Supabase.', 'error');
+                    } else {
+                        showMessage(`Error: ${error.message}`, 'error');
+                    }
+                } else {
+                    debugLog(`Success! ID: ${data?.[0]?.id}`);
+                    showThankYou(fullName);
+                }
+            } catch (err) {
+                debugLog(`Exception: ${err.message}`);
+                showMessage('There was an error submitting your registration. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Registration';
+            }
+        });
+        
+        // ============================================
+        // REAL-TIME VALIDATION
+        // ============================================
+        ['fullName', 'email', 'phone'].forEach(fieldId => {
+            document.getElementById(fieldId).addEventListener('input', () => {
+                showFieldError(fieldId, false);
+            });
+        });
+        
+        document.getElementById('phone').addEventListener('blur', function() {
+            if (this.value && validatePhone(this.value)) {
+                this.value = formatPhoneNumber(this.value);
+            }
+        });
+        
+        // ============================================
+        // TEST CONNECTION ON LOAD
+        // ============================================
+        (async function testConnection() {
+            try {
+                const { data, error } = await supabaseClient.from('sisterhood_signups').select('id').limit(1);
+                if (error) {
+                    debugLog(`DB Check Failed: ${error.message}`);
+                } else {
+                    debugLog('DB Connection OK ✓');
+                }
+            } catch (e) {
+                debugLog(`Connection Error: ${e.message}`);
+            }
+        })();
+    </script>
+</body>
+</html>

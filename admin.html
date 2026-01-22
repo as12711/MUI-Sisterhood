@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Sisterhood Initiative | Man Up! Inc.</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --forest-green: #1B5E20;
+            --forest-light: #2E7D32;
+            --gold: #C9A227;
+            --gold-light: #E6C84A;
+            --cream: #FDF8E8;
+            --charcoal: #1A1A1A;
+            --gray-900: #1A202C;
+            --gray-800: #2D3748;
+            --gray-600: #4A5568;
+            --gray-400: #A0AEC0;
+            --gray-200: #E2E8F0;
+            --gray-100: #F7FAFC;
+            --white: #FFFFFF;
+            --error-red: #C53030;
+            --success-green: #276749;
+            --info-blue: #2B6CB0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-100);
+            min-height: 100vh;
+            color: var(--gray-800);
+        }
+        
+        /* =============== HEADER =============== */
+        .header {
+            background: linear-gradient(135deg, var(--forest-green) 0%, var(--forest-light) 100%);
+            color: var(--white);
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .header-text h1 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+        }
+        
+        .header-text p {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        /* =============== MAIN CONTENT =============== */
+        .main-content {
+            padding: 24px 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* =============== STATS CARDS =============== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--forest-green);
+        }
+        
+        .stat-card.gold .number {
+            color: var(--gold);
+        }
+        
+        /* =============== CONTROLS =============== */
+        .controls {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--forest-green);
+        }
+        
+        .filter-select {
+            padding: 10px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--white);
+            cursor: pointer;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--forest-green);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background: var(--forest-light);
+        }
+        
+        .btn-gold {
+            background: var(--gold);
+            color: var(--charcoal);
+        }
+        
+        .btn-gold:hover {
+            background: var(--gold-light);
+        }
+        
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gray-400);
+        }
+        
+        .btn-danger {
+            background: var(--error-red);
+            color: var(--white);
+        }
+        
+        /* =============== TABLE =============== */
+        .table-container {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .table-header h2 {
+            font-size: 1.125rem;
+            color: var(--gray-800);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: var(--gray-100);
+        }
+        
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+        
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 0.875rem;
+            color: var(--gray-800);
+        }
+        
+        tbody tr:hover {
+            background: var(--gray-100);
+            cursor: pointer;
+        }
+        
+        .name-cell {
+            font-weight: 600;
+        }
+        
+        /* =============== BADGES =============== */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        
+        .badge-pending { background: #FEF3C7; color: #92400E; }
+        .badge-contacted { background: #DBEAFE; color: #1E40AF; }
+        .badge-enrolled { background: #D1FAE5; color: #065F46; }
+        .badge-active { background: #D1FAE5; color: #065F46; }
+        .badge-inactive { background: #F3F4F6; color: #4B5563; }
+        .badge-completed { background: #E0E7FF; color: #3730A3; }
+        
+        .badge-online { background: #DBEAFE; color: #1E40AF; }
+        .badge-manual { background: #FEF3C7; color: #92400E; }
+        .badge-paper { background: #FED7AA; color: #9A3412; }
+        
+        /* =============== LOADING & EMPTY =============== */
+        .loading, .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-600);
+        }
+        
+        .spinner {
+            border: 3px solid var(--gray-200);
+            border-top: 3px solid var(--forest-green);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* =============== MODAL =============== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--white);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            font-size: 1.25rem;
+            color: var(--gray-800);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray-600);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+        
+        .close-btn:hover {
+            background: var(--gray-200);
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .detail-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .detail-value {
+            color: var(--gray-800);
+            font-size: 0.875rem;
+        }
+        
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        /* =============== FORM MODAL =============== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+        }
+        
+        .form-group .required {
+            color: var(--error-red);
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--forest-green);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .checkbox-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-field input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--forest-green);
+        }
+        
+        .checkbox-field label {
+            margin: 0;
+            font-weight: 400;
+        }
+        
+        /* =============== TOAST =============== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: var(--white);
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.success { background: var(--success-green); }
+        .toast.error { background: var(--error-red); }
+        .toast.info { background: var(--info-blue); }
+        
+        /* =============== LOGIN MODAL =============== */
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--forest-green) 0%, var(--forest-light) 100%);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-modal.hidden {
+            display: none;
+        }
+        
+        .login-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .login-logo svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+        }
+        
+        .login-logo h2 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.75rem;
+            color: var(--forest-green);
+            margin-bottom: 8px;
+        }
+        
+        .login-logo p {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .login-form-group {
+            margin-bottom: 20px;
+        }
+        
+        .login-form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+        }
+        
+        .login-form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .login-form-group input:focus {
+            outline: none;
+            border-color: var(--forest-green);
+        }
+        
+        .password-requirements {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            margin-top: 6px;
+            padding: 8px;
+            background: var(--gray-100);
+            border-radius: 6px;
+        }
+        
+        .password-requirements ul {
+            margin: 4px 0 0 0;
+            padding-left: 20px;
+        }
+        
+        .login-error {
+            background: #FEE2E2;
+            color: var(--error-red);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .login-error.show {
+            display: block;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--forest-green);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .login-btn:hover {
+            background: var(--forest-light);
+        }
+        
+        .login-btn:disabled {
+            background: var(--gray-400);
+            cursor: not-allowed;
+        }
+        
+        /* =============== RESPONSIVE =============== */
+        @media (max-width: 768px) {
+            .header {
+                padding: 16px;
+            }
+            
+            .main-content {
+                padding: 16px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: 100%;
+            }
+            
+            table {
+                font-size: 0.75rem;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- =============== HEADER =============== -->
+    <header class="header">
+        <div class="header-left">
+            <svg class="logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#C9A227"/>
+                <path d="M50 20C55 20 60 25 60 32C60 39 55 45 50 45C45 45 40 39 40 32C40 25 45 20 50 20Z" fill="#1B5E20"/>
+                <path d="M35 52C35 52 38 48 50 48C62 48 65 52 65 52L68 80C68 82 66 84 64 84H36C34 84 32 82 32 80L35 52Z" fill="#1B5E20"/>
+                <circle cx="30" cy="55" r="8" fill="#1B5E20"/>
+                <circle cx="70" cy="55" r="8" fill="#1B5E20"/>
+                <circle cx="30" cy="55" r="5" fill="#C9A227"/>
+                <circle cx="70" cy="55" r="5" fill="#C9A227"/>
+            </svg>
+            <div class="header-text">
+                <h1>Man Up! Inc.</h1>
+                <p>Sisterhood Initiative Admin Dashboard</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <span id="userInfo" style="color: var(--white); margin-right: 16px; font-size: 0.875rem; display: none;">
+                <span id="userName">Admin</span>
+            </span>
+            <button class="btn btn-gold" onclick="openAddModal()" id="addParticipantBtn" style="display: none;">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+                Add Participant
+            </button>
+            <button class="btn btn-secondary" onclick="handleLogout()" id="logoutBtn" style="display: none; background: rgba(255,255,255,0.2); color: var(--white);">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                </svg>
+                Logout
+            </button>
+        </div>
+    </header>
+    
+    <!-- =============== MAIN CONTENT =============== -->
+    <main class="main-content">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Registrations</h3>
+                <div class="number" id="totalCount">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>This Week</h3>
+                <div class="number" id="weekCount">-</div>
+            </div>
+            <div class="stat-card gold">
+                <h3>Active Participants</h3>
+                <div class="number" id="activeCount">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Newsletter Subscribers</h3>
+                <div class="number" id="newsletterCount">-</div>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by name, email, or phone...">
+            </div>
+            <select class="filter-select" id="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="contacted">Contacted</option>
+                <option value="enrolled">Enrolled</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="completed">Completed</option>
+            </select>
+            <select class="filter-select" id="sourceFilter">
+                <option value="">All Sources</option>
+                <option value="online">Online</option>
+                <option value="manual">Manual Entry</option>
+                <option value="paper">Paper Form</option>
+                <option value="phone">Phone</option>
+                <option value="event">Event</option>
+            </select>
+            <button class="btn btn-secondary" onclick="refreshData()">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                    <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                </svg>
+                Refresh
+            </button>
+            <button class="btn btn-primary" onclick="exportToCSV()">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                </svg>
+                Export CSV
+            </button>
+        </div>
+        
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>Participants (<span id="displayCount">0</span>)</h2>
+            </div>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading participants...</p>
+            </div>
+            
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom: 16px; opacity: 0.5;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <h3>No participants yet</h3>
+                <p>Click "Add Participant" to manually enter a participant from a signup sheet</p>
+            </div>
+            
+            <table id="dataTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Source</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </main>
+    
+    <!-- =============== VIEW DETAIL MODAL =============== -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Participant Details</h2>
+                <button class="close-btn" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="viewModalBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="deleteParticipant()">Delete</button>
+                <button class="btn btn-secondary" onclick="closeViewModal()">Close</button>
+                <button class="btn btn-primary" onclick="openEditFromView()">Edit</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- =============== ADD/EDIT MODAL =============== -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="addModalTitle">Add Participant</h2>
+                <button class="close-btn" onclick="closeAddModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addForm">
+                    <input type="hidden" id="editId">
+                    
+                    <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" id="addName" required placeholder="John Smith">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email <span class="required">*</span></label>
+                            <input type="email" id="addEmail" required placeholder="john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone <span class="required">*</span></label>
+                            <input type="tel" id="addPhone" required placeholder="(555) 123-4567">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Year of Birth</label>
+                            <input type="number" id="addBirthYear" min="1940" max="2010" placeholder="1985">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Children</label>
+                            <input type="number" id="addNumChildren" min="0" max="20" placeholder="2">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Children's Ages</label>
+                        <input type="text" id="addChildrenAges" placeholder="e.g., 5, 8, 12">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Referral Source</label>
+                            <select id="addReferral">
+                                <option value="">Select...</option>
+                                <option value="social_media">Social Media</option>
+                                <option value="friend">Friend/Family</option>
+                                <option value="community_event">Community Event</option>
+                                <option value="church">Church</option>
+                                <option value="flyer">Flyer/Poster</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Entry Source</label>
+                            <select id="addSource">
+                                <option value="manual">Manual Entry</option>
+                                <option value="paper">Paper Form</option>
+                                <option value="phone">Phone Call</option>
+                                <option value="event">Event Signup</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Goals / Notes</label>
+                        <textarea id="addGoals" placeholder="Enter any goals or notes..."></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="addStatus">
+                                <option value="pending">Pending</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="enrolled">Enrolled</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-field" style="margin-top: 32px;">
+                                <input type="checkbox" id="addNewsletter" checked>
+                                <label for="addNewsletter">Subscribe to newsletter</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Admin Notes</label>
+                        <textarea id="addAdminNotes" placeholder="Internal notes (not visible to participant)..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveParticipant()">Save Participant</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- =============== LOGIN MODAL =============== -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-card">
+            <div class="login-logo">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="48" fill="#C9A227"/>
+                    <path d="M50 20C55 20 60 25 60 32C60 39 55 45 50 45C45 45 40 39 40 32C40 25 45 20 50 20Z" fill="#1B5E20"/>
+                    <path d="M35 52C35 52 38 48 50 48C62 48 65 52 65 52L68 80C68 82 66 84 64 84H36C34 84 32 82 32 80L35 52Z" fill="#1B5E20"/>
+                    <circle cx="30" cy="55" r="8" fill="#1B5E20"/>
+                    <circle cx="70" cy="55" r="8" fill="#1B5E20"/>
+                    <circle cx="30" cy="55" r="5" fill="#C9A227"/>
+                    <circle cx="70" cy="55" r="5" fill="#C9A227"/>
+                </svg>
+                <h2>Man Up! Inc.</h2>
+                <p>Admin Dashboard Login</p>
+            </div>
+            
+            <div id="loginError" class="login-error"></div>
+            
+            <!-- Login Form -->
+            <form id="loginForm">
+                <div class="login-form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required autocomplete="email" placeholder="your.email@example.com">
+                </div>
+                
+                <div class="login-form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Enter your password">
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+            </form>
+            
+            <!-- Password Setup Form (shown for first-time login) -->
+            <form id="passwordSetupForm" style="display: none;">
+                <div class="login-form-group">
+                    <label for="setupEmail">Email</label>
+                    <input type="email" id="setupEmail" readonly>
+                </div>
+                
+                <div class="login-form-group">
+                    <label for="setupPassword">Create Password</label>
+                    <input type="password" id="setupPassword" required autocomplete="new-password" placeholder="Enter new password">
+                    <div class="password-requirements">
+                        <strong>Password must contain:</strong>
+                        <ul>
+                            <li>At least 8 characters</li>
+                            <li>One uppercase letter</li>
+                            <li>One lowercase letter</li>
+                            <li>One number</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="login-form-group">
+                    <label for="setupPasswordConfirm">Confirm Password</label>
+                    <input type="password" id="setupPasswordConfirm" required autocomplete="new-password" placeholder="Confirm your password">
+                </div>
+                
+                <button type="submit" class="login-btn" id="setupBtn">Set Password & Sign In</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+    
+    <script>
+        // ============================================
+        // API CONFIGURATION
+        // ============================================
+        // Auto-detect environment and use appropriate backend URL
+        const isLocalEnvironment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_BASE_URL = isLocalEnvironment
+            ? 'http://localhost:3001/api'  // Local development
+            : 'https://express-oby0145fw-aunrays-projects.vercel.app/api';  // Production (Vercel)
+        
+        console.log('🔗 API URL:', API_BASE_URL);
+        console.log('🌍 Environment:', isLocalEnvironment ? 'Development' : 'Production');
+        
+        // ============================================
+        // AUTHENTICATION STATE
+        // ============================================
+        let authToken = localStorage.getItem('admin_token');
+        let currentUser = JSON.parse(localStorage.getItem('admin_user') || 'null');
+        let sessionTimeoutTimer = null;
+        let activityTimer = null;
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+        const ACTIVITY_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
+        
+        let allData = [];
+        let currentViewItem = null;
+        
+        // ============================================
+        // AUTHENTICATION HELPERS
+        // ============================================
+        function getAuthHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            };
+        }
+        
+        async function apiCall(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const config = {
+                method: options.method || 'GET',
+                headers: {
+                    ...getAuthHeaders(),
+                    ...options.headers
+                }
+            };
+            
+            // Handle body - stringify if it's an object
+            if (options.body) {
+                config.body = typeof options.body === 'string' 
+                    ? options.body 
+                    : JSON.stringify(options.body);
+            }
+            
+            const response = await fetch(url, config);
+            const data = await response.json();
+            
+            // Handle authentication errors
+            if (response.status === 401) {
+                handleLogout();
+                throw new Error('Session expired. Please log in again.');
+            }
+            
+            if (!response.ok) {
+                throw new Error(data.message || data.error || 'Request failed');
+            }
+            
+            return data;
+        }
+        
+        function showLoginError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            setTimeout(() => errorDiv.classList.remove('show'), 5000);
+        }
+        
+        function hideLoginError() {
+            document.getElementById('loginError').classList.remove('show');
+        }
+        
+        // ============================================
+        // LOGIN & AUTHENTICATION
+        // ============================================
+        async function handleLogin(email, password) {
+            try {
+                hideLoginError();
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    // Check if password setup is required
+                    if (data.requiresPasswordSetup) {
+                        showPasswordSetupForm(email, data.name);
+                        return;
+                    }
+                    throw new Error(data.message || 'Login failed');
+                }
+                
+                // Store token and user info
+                authToken = data.token;
+                currentUser = data.user;
+                localStorage.setItem('admin_token', authToken);
+                localStorage.setItem('admin_user', JSON.stringify(currentUser));
+                
+                // Show dashboard
+                showDashboard();
+                startSessionTimer();
+                startActivityTracking();
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showLoginError(error.message || 'Failed to log in. Please check your credentials.');
+            }
+        }
+        
+        async function handlePasswordSetup(email, password, passwordConfirm) {
+            // Validate password
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                showLoginError('Password must be at least 8 characters with uppercase, lowercase, and a number');
+                return;
+            }
+            
+            if (password !== passwordConfirm) {
+                showLoginError('Passwords do not match');
+                return;
+            }
+            
+            try {
+                hideLoginError();
+                const response = await fetch(`${API_BASE_URL}/auth/setup-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to set password');
+                }
+                
+                // Store token and user info
+                authToken = data.token;
+                currentUser = data.user;
+                localStorage.setItem('admin_token', authToken);
+                localStorage.setItem('admin_user', JSON.stringify(currentUser));
+                
+                // Show dashboard
+                showDashboard();
+                startSessionTimer();
+                startActivityTracking();
+                
+            } catch (error) {
+                console.error('Password setup error:', error);
+                showLoginError(error.message || 'Failed to set password. Please try again.');
+            }
+        }
+        
+        function showPasswordSetupForm(email, name) {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('passwordSetupForm').style.display = 'block';
+            document.getElementById('setupEmail').value = email;
+        }
+        
+        async function handleLogout() {
+            try {
+                if (authToken) {
+                    await fetch(`${API_BASE_URL}/auth/logout`, {
+                        method: 'POST',
+                        headers: getAuthHeaders()
+                    }).catch(() => {}); // Ignore errors on logout
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                // Clear auth state
+                authToken = null;
+                currentUser = null;
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
+                
+                // Stop timers
+                stopSessionTimer();
+                stopActivityTracking();
+                
+                // Show login
+                showLogin();
+            }
+        }
+        
+        async function verifyToken() {
+            if (!authToken) return false;
+            
+            try {
+                const data = await apiCall('/auth/verify');
+                currentUser = data.user;
+                localStorage.setItem('admin_user', JSON.stringify(currentUser));
+                return true;
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                return false;
+            }
+        }
+        
+        // ============================================
+        // SESSION MANAGEMENT
+        // ============================================
+        function startSessionTimer() {
+            stopSessionTimer();
+            sessionTimeoutTimer = setTimeout(() => {
+                handleLogout();
+                alert('Your session has expired due to inactivity. Please log in again.');
+            }, SESSION_TIMEOUT);
+        }
+        
+        function stopSessionTimer() {
+            if (sessionTimeoutTimer) {
+                clearTimeout(sessionTimeoutTimer);
+                sessionTimeoutTimer = null;
+            }
+        }
+        
+        function resetSessionTimer() {
+            startSessionTimer();
+        }
+        
+        function startActivityTracking() {
+            stopActivityTracking();
+            
+            // Update activity every 5 minutes
+            activityTimer = setInterval(async () => {
+                if (authToken) {
+                    try {
+                        await apiCall('/auth/update-activity', { method: 'POST' });
+                    } catch (error) {
+                        console.error('Activity update failed:', error);
+                    }
+                }
+            }, ACTIVITY_UPDATE_INTERVAL);
+            
+            // Track user activity (mouse, keyboard, scroll)
+            const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+            activityEvents.forEach(event => {
+                document.addEventListener(event, resetSessionTimer, { passive: true });
+            });
+        }
+        
+        function stopActivityTracking() {
+            if (activityTimer) {
+                clearInterval(activityTimer);
+                activityTimer = null;
+            }
+        }
+        
+        // ============================================
+        // UI STATE MANAGEMENT
+        // ============================================
+        function showLogin() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.querySelector('.header').style.display = 'none';
+            document.querySelector('.main-content').style.display = 'none';
+        }
+        
+        function showDashboard() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.querySelector('.header').style.display = 'flex';
+            document.querySelector('.main-content').style.display = 'block';
+            
+            // Update user info
+            if (currentUser) {
+                document.getElementById('userName').textContent = currentUser.name || currentUser.email;
+                document.getElementById('userInfo').style.display = 'inline-block';
+                document.getElementById('logoutBtn').style.display = 'inline-flex';
+                document.getElementById('addParticipantBtn').style.display = 'inline-flex';
+            }
+        }
+        
+        // ============================================
+        // DATA LOADING
+        // ============================================
+        async function loadData() {
+            const loading = document.getElementById('loading');
+            const emptyState = document.getElementById('emptyState');
+            const table = document.getElementById('dataTable');
+            
+            loading.style.display = 'block';
+            emptyState.style.display = 'none';
+            table.style.display = 'none';
+            
+            try {
+                const response = await apiCall('/Sisterhood/signups');
+                allData = response.data || [];
+                updateStats();
+                applyFilters();
+                
+                loading.style.display = 'none';
+                if (allData.length === 0) {
+                    emptyState.style.display = 'block';
+                } else {
+                    table.style.display = 'table';
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                loading.innerHTML = `<p style="color: var(--error-red);">Error: ${error.message}</p>`;
+                showToast('Failed to load data: ' + error.message, 'error');
+            }
+        }
+        
+        function updateStats() {
+            document.getElementById('totalCount').textContent = allData.length;
+            
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            document.getElementById('weekCount').textContent = allData.filter(i => new Date(i.created_at) > weekAgo).length;
+            
+            document.getElementById('activeCount').textContent = allData.filter(i => ['enrolled', 'active'].includes(i.status)).length;
+            document.getElementById('newsletterCount').textContent = allData.filter(i => i.newsletter_opt_in).length;
+        }
+        
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const source = document.getElementById('sourceFilter').value;
+            
+            let filtered = allData.filter(item => {
+                const matchSearch = !search || 
+                    item.full_name?.toLowerCase().includes(search) ||
+                    item.email?.toLowerCase().includes(search) ||
+                    item.phone?.includes(search);
+                const matchStatus = !status || item.status === status;
+                const matchSource = !source || item.entry_source === source;
+                return matchSearch && matchStatus && matchSource;
+            });
+            
+            renderTable(filtered);
+            document.getElementById('displayCount').textContent = filtered.length;
+        }
+        
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            const table = document.getElementById('dataTable');
+            const emptyState = document.getElementById('emptyState');
+            
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                table.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = 'table';
+            emptyState.style.display = 'none';
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.onclick = () => showDetails(item);
+                
+                const date = new Date(item.created_at);
+                const formattedDate = date.toLocaleDateString('en-US', { 
+                    month: 'short', day: 'numeric', year: 'numeric' 
+                });
+                
+                row.innerHTML = `
+                    <td class="name-cell">${item.full_name || '-'}</td>
+                    <td>${item.email || '-'}</td>
+                    <td>${item.phone || '-'}</td>
+                    <td><span class="badge badge-${item.status || 'pending'}">${item.status || 'pending'}</span></td>
+                    <td><span class="badge badge-${item.entry_source || 'online'}">${item.entry_source || 'online'}</span></td>
+                    <td>${formattedDate}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // ============================================
+        // VIEW MODAL
+        // ============================================
+        function showDetails(item) {
+            currentViewItem = item;
+            const modal = document.getElementById('viewModal');
+            const body = document.getElementById('viewModalBody');
+            
+            const date = new Date(item.created_at);
+            const formattedDate = date.toLocaleString('en-US', { 
+                month: 'long', day: 'numeric', year: 'numeric',
+                hour: 'numeric', minute: '2-digit'
+            });
+            
+            body.innerHTML = `
+                <div class="detail-row"><div class="detail-label">Full Name</div><div class="detail-value">${item.full_name || '-'}</td>
+                    <td>${item.email || '-'}</td>
+                    <td>${item.phone || '-'}</div></div>
+                <div class="detail-row"><div class="detail-label">Children's Ages</div><div class="detail-value">${item.children_ages || '-'}</div></div>
+                <div class="detail-row"><div class="detail-label">Referral Source</div><div class="detail-value">${formatReferral(item.referral_source)}</div></div>
+                <div class="detail-row"><div class="detail-label">Goals</div><div class="detail-value">${item.goals || '-'}</div></div>
+                <div class="detail-row"><div class="detail-label">Newsletter</div><div class="detail-value">${item.newsletter_opt_in ? 'Yes' : 'No'}</div></div>
+                <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="badge badge-${item.status}">${item.status}</span></div></div>
+                <div class="detail-row"><div class="detail-label">Entry Source</div><div class="detail-value"><span class="badge badge-${item.entry_source}">${item.entry_source}</span></div></div>
+                <div class="detail-row"><div class="detail-label">Registered</div><div class="detail-value">${formattedDate}</div></div>
+                ${item.notes ? `<div class="detail-row"><div class="detail-label">Admin Notes</div><div class="detail-value">${item.notes}</div></div>` : ''}
+            `;
+            
+            modal.classList.add('show');
+        }
+        
+        function formatReferral(source) {
+            if (!source) return '-';
+            return source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('show');
+            currentViewItem = null;
+        }
+        
+        function openEditFromView() {
+            if (!currentViewItem) return;
+            closeViewModal();
+            openAddModal(currentViewItem);
+        }
+        
+        // ============================================
+        // ADD/EDIT MODAL
+        // ============================================
+        function openAddModal(item = null) {
+            const modal = document.getElementById('addModal');
+            const title = document.getElementById('addModalTitle');
+            const form = document.getElementById('addForm');
+            
+            form.reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('addNewsletter').checked = true;
+            
+            if (item) {
+                title.textContent = 'Edit Participant';
+                document.getElementById('editId').value = item.id;
+                document.getElementById('addName').value = item.full_name || '';
+                document.getElementById('addEmail').value = item.email || '';
+                document.getElementById('addPhone').value = item.phone || '';
+                document.getElementById('addBirthYear').value = item.year_of_birth || '';
+                document.getElementById('addNumChildren').value = item.num_children || '';
+                document.getElementById('addChildrenAges').value = item.children_ages || '';
+                document.getElementById('addReferral').value = item.referral_source || '';
+                document.getElementById('addSource').value = item.entry_source || 'manual';
+                document.getElementById('addGoals').value = item.goals || '';
+                document.getElementById('addStatus').value = item.status || 'pending';
+                document.getElementById('addNewsletter').checked = item.newsletter_opt_in !== false;
+                document.getElementById('addAdminNotes').value = item.notes || '';
+            } else {
+                title.textContent = 'Add Participant';
+            }
+            
+            modal.classList.add('show');
+        }
+        
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+        }
+        
+        async function saveParticipant() {
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('addName').value.trim();
+            const email = document.getElementById('addEmail').value.trim().toLowerCase();
+            const phone = document.getElementById('addPhone').value.trim();
+            
+            if (!name || !email || !phone) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            const data = {
+                full_name: name,
+                email: email,
+                phone: formatPhone(phone),
+                year_of_birth: parseInt(document.getElementById('addBirthYear').value) || null,
+                num_children: parseInt(document.getElementById('addNumChildren').value) || null,
+                children_ages: document.getElementById('addChildrenAges').value.trim() || null,
+                referral_source: document.getElementById('addReferral').value || null,
+                entry_source: document.getElementById('addSource').value || 'manual',
+                goals: document.getElementById('addGoals').value.trim() || null,
+                status: document.getElementById('addStatus').value || 'pending',
+                newsletter_opt_in: document.getElementById('addNewsletter').checked,
+                notes: document.getElementById('addAdminNotes').value.trim() || null
+            };
+            
+            try {
+                if (id) {
+                    // Update existing participant
+                    await apiCall(`/Sisterhood/signups/${id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    // Create new participant
+                    await apiCall('/Sisterhood/signups', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                }
+                
+                showToast(id ? 'Participant updated!' : 'Participant added!', 'success');
+                closeAddModal();
+                loadData();
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteParticipant() {
+            if (!currentViewItem) return;
+            
+            if (!confirm(`Are you sure you want to delete ${currentViewItem.full_name}?`)) return;
+            
+            try {
+                await apiCall(`/Sisterhood/signups/${currentViewItem.id}`, {
+                    method: 'DELETE'
+                });
+                
+                showToast('Participant deleted', 'success');
+                closeViewModal();
+                loadData();
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        function formatPhone(phone) {
+            const digits = phone.replace(/\D/g, '');
+            if (digits.length === 10) {
+                return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+            }
+            return phone;
+        }
+        
+        // ============================================
+        // EXPORT
+        // ============================================
+        function exportToCSV() {
+            if (allData.length === 0) {
+                showToast('No data to export', 'error');
+                return;
+            }
+            
+            const headers = ['Full Name', 'Email', 'Phone', 'Year of Birth', 'Children', 
+                           'Children Ages', 'Referral', 'Goals', 'Newsletter', 'Status', 'Source', 'Date'];
+            
+            const rows = allData.map(item => [
+                item.full_name || '',
+                item.email || '',
+                item.phone || '',
+                item.year_of_birth || '',
+                item.num_children || '',
+                item.children_ages || '',
+                item.referral_source || '',
+                item.goals || '',
+                item.newsletter_opt_in ? 'Yes' : 'No',
+                item.status || '',
+                item.entry_source || '',
+                new Date(item.created_at).toLocaleString()
+            ]);
+            
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Sisterhood-participants-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('CSV exported successfully!', 'success');
+        }
+        
+        function refreshData() {
+            loadData();
+            showToast('Data refreshed', 'info');
+        }
+        
+        // ============================================
+        // TOAST
+        // ============================================
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            document.getElementById('loginBtn').disabled = true;
+            await handleLogin(email, password);
+            document.getElementById('loginBtn').disabled = false;
+        });
+        
+        // Password setup form
+        document.getElementById('passwordSetupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('setupEmail').value.trim();
+            const password = document.getElementById('setupPassword').value;
+            const passwordConfirm = document.getElementById('setupPasswordConfirm').value;
+            document.getElementById('setupBtn').disabled = true;
+            await handlePasswordSetup(email, password, passwordConfirm);
+            document.getElementById('setupBtn').disabled = false;
+        });
+        
+        // Dashboard event listeners (only work when authenticated)
+        document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+        document.getElementById('statusFilter')?.addEventListener('change', applyFilters);
+        document.getElementById('sourceFilter')?.addEventListener('change', applyFilters);
+        
+        document.getElementById('viewModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'viewModal') closeViewModal();
+        });
+        
+        document.getElementById('addModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'addModal') closeAddModal();
+        });
+        
+        // Initialize on page load
+        window.addEventListener('load', async function() {
+            // Check if user is already authenticated
+            if (authToken) {
+                const isValid = await verifyToken();
+                if (isValid) {
+                    showDashboard();
+                    startSessionTimer();
+                    startActivityTracking();
+                    loadData();
+                } else {
+                    showLogin();
+                }
+            } else {
+                showLogin();
+            }
+        });
+    </script>
+</body>
+</html>
+
+

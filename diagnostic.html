@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Diagnostic - Sisterhood Initiative</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #60a5fa;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .section.success {
+            border-left-color: #10b981;
+        }
+        
+        .section.error {
+            border-left-color: #ef4444;
+        }
+        
+        .section.warning {
+            border-left-color: #f59e0b;
+        }
+        
+        h2 {
+            color: #60a5fa;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-pending { background: #475569; color: #cbd5e1; }
+        .status-success { background: #065f46; color: #6ee7b7; }
+        .status-error { background: #7f1d1d; color: #fca5a5; }
+        .status-warning { background: #78350f; color: #fbbf24; }
+        
+        .log {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.85rem;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding-left: 15px;
+            border-left: 3px solid #475569;
+        }
+        
+        .log-entry.success { border-left-color: #10b981; color: #6ee7b7; }
+        .log-entry.error { border-left-color: #ef4444; color: #fca5a5; }
+        .log-entry.info { border-left-color: #3b82f6; color: #60a5fa; }
+        .log-entry.warning { border-left-color: #f59e0b; color: #fbbf24; }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .info-label {
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        
+        .info-value {
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; }
+        
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        code {
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #fbbf24;
+            font-size: 0.9em;
+        }
+        
+        .next-steps {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #10b981;
+        }
+        
+        .next-steps ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .next-steps li {
+            margin-bottom: 8px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #475569;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Database Diagnostic Tool</h1>
+        <p class="subtitle">Diagnose and fix database connection issues</p>
+        
+        <!-- Test 1: Configuration -->
+        <div class="section" id="configSection">
+            <h2>
+                <span id="configIcon">⚙️</span> Configuration
+                <span class="status-badge status-pending" id="configStatus">Checking...</span>
+            </h2>
+            <div class="info-grid">
+                <div class="info-label">Supabase URL:</div>
+                <div class="info-value" id="displayUrl">-</div>
+                
+                <div class="info-label">API Key (truncated):</div>
+                <div class="info-value" id="displayKey">-</div>
+                
+                <div class="info-label">Table Name:</div>
+                <div class="info-value">Sisterhood_signups</div>
+            </div>
+        </div>
+        
+        <!-- Test 2: Connection -->
+        <div class="section" id="connSection">
+            <h2>
+                <span id="connIcon">🔌</span> Database Connection
+                <span class="status-badge status-pending" id="connStatus">Testing...</span>
+            </h2>
+            <div class="log" id="connLog"></div>
+        </div>
+        
+        <!-- Test 3: Table Existence -->
+        <div class="section" id="tableSection">
+            <h2>
+                <span id="tableIcon">📊</span> Table Structure
+                <span class="status-badge status-pending" id="tableStatus">Checking...</span>
+            </h2>
+            <div class="log" id="tableLog"></div>
+        </div>
+        
+        <!-- Test 4: Insert Test -->
+        <div class="section" id="insertSection">
+            <h2>
+                <span id="insertIcon">➕</span> Insert Permission
+                <span class="status-badge status-pending" id="insertStatus">Ready</span>
+            </h2>
+            <p>Test if data can be inserted into the database.</p>
+            <button class="btn btn-success" onclick="testInsert()">Test Insert</button>
+            <button class="btn btn-danger" onclick="cleanupTestData()">Delete Test Data</button>
+            <div class="log" id="insertLog"></div>
+        </div>
+        
+        <!-- Test 5: Select Test -->
+        <div class="section" id="selectSection">
+            <h2>
+                <span id="selectIcon">📖</span> Select Permission
+                <span class="status-badge status-pending" id="selectStatus">Ready</span>
+            </h2>
+            <p>Test if data can be retrieved from the database.</p>
+            <button class="btn" onclick="testSelect()">Test Select</button>
+            <div class="log" id="selectLog"></div>
+        </div>
+        
+        <!-- Next Steps -->
+        <div class="next-steps" id="nextSteps" style="display: none;">
+            <h2>📋 What to do next:</h2>
+            <div id="nextStepsContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        const SUPABASE_URL = 'https://zagzyiyhomvwhhsibbxv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZ3p5aXlob212d2hoc2liYnh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1NTAyODQsImV4cCI6MjA4MTEyNjI4NH0.oVaFmhT2t44v45TEq4e_FtAfyqG1-or-0d4VTeOtxNE';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let testResults = {
+            config: false,
+            connection: false,
+            table: false,
+            insert: false,
+            select: false
+        };
+        
+        function log(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function setStatus(sectionId, statusId, iconId, status, message) {
+            const section = document.getElementById(sectionId);
+            const statusEl = document.getElementById(statusId);
+            const icon = document.getElementById(iconId);
+            
+            section.className = `section ${status}`;
+            statusEl.className = `status-badge status-${status}`;
+            statusEl.textContent = message || status.toUpperCase();
+            
+            if (status === 'success') icon.textContent = '✅';
+            else if (status === 'error') icon.textContent = '❌';
+            else if (status === 'warning') icon.textContent = '⚠️';
+        }
+        
+        // Test 1: Configuration
+        function testConfiguration() {
+            log('connLog', 'Checking configuration...');
+            
+            document.getElementById('displayUrl').textContent = SUPABASE_URL;
+            document.getElementById('displayKey').textContent = SUPABASE_ANON_KEY.slice(0, 30) + '...' + SUPABASE_ANON_KEY.slice(-10);
+            
+            if (SUPABASE_URL && SUPABASE_ANON_KEY && supabaseClient) {
+                setStatus('configSection', 'configStatus', 'configIcon', 'success', 'Valid');
+                log('connLog', 'Configuration is valid', 'success');
+                testResults.config = true;
+            } else {
+                setStatus('configSection', 'configStatus', 'configIcon', 'error', 'Invalid');
+                log('connLog', 'Configuration is missing or invalid', 'error');
+            }
+        }
+        
+        // Test 2: Connection
+        async function testConnection() {
+            log('connLog', 'Testing database connection...');
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('Sisterhood_signups')
+                    .select('id')
+                    .limit(1);
+                
+                if (error) {
+                    if (error.code === '42P01') {
+                        setStatus('connSection', 'connStatus', 'connIcon', 'error', 'Table Not Found');
+                        log('connLog', `❌ ERROR: Table "Sisterhood_signups" does not exist!`, 'error');
+                        log('connLog', `You need to run the SQL from supabase-schema.sql in your Supabase dashboard`, 'warning');
+                        showNextSteps('table-missing');
+                    } else if (error.code === 'PGRST116') {
+                        setStatus('connSection', 'connStatus', 'connIcon', 'error', 'Permission Denied');
+                        log('connLog', `❌ ERROR: Permission denied (RLS policy issue)`, 'error');
+                        log('connLog', `Code: ${error.code}`, 'error');
+                        showNextSteps('rls-policy');
+                    } else {
+                        setStatus('connSection', 'connStatus', 'connIcon', 'error', 'Connection Failed');
+                        log('connLog', `❌ ERROR: ${error.message}`, 'error');
+                        log('connLog', `Code: ${error.code}`, 'error');
+                        showNextSteps('unknown-error');
+                    }
+                    testResults.connection = false;
+                } else {
+                    setStatus('connSection', 'connStatus', 'connIcon', 'success', 'Connected');
+                    log('connLog', '✅ Connection successful!', 'success');
+                    log('connLog', `Database is accessible`, 'success');
+                    testResults.connection = true;
+                    testResults.select = true;
+                }
+            } catch (e) {
+                setStatus('connSection', 'connStatus', 'connIcon', 'error', 'Exception');
+                log('connLog', `❌ EXCEPTION: ${e.message}`, 'error');
+                testResults.connection = false;
+                showNextSteps('exception');
+            }
+        }
+        
+        // Test 3: Table Structure
+        async function checkTableStructure() {
+            if (!testResults.connection) {
+                log('tableLog', 'Skipped - connection test failed', 'warning');
+                setStatus('tableSection', 'tableStatus', 'tableIcon', 'warning', 'Skipped');
+                return;
+            }
+            
+            log('tableLog', 'Checking table structure...');
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('Sisterhood_signups')
+                    .select('*')
+                    .limit(0);
+                
+                if (error) {
+                    setStatus('tableSection', 'tableStatus', 'tableIcon', 'error', 'Error');
+                    log('tableLog', `❌ Error checking table: ${error.message}`, 'error');
+                    testResults.table = false;
+                } else {
+                    setStatus('tableSection', 'tableStatus', 'tableIcon', 'success', 'Valid');
+                    log('tableLog', '✅ Table structure is accessible', 'success');
+                    
+                    const expectedColumns = [
+                        'id', 'full_name', 'email', 'phone', 'year_of_birth',
+                        'num_children', 'children_ages', 'referral_source', 'goals',
+                        'newsletter_opt_in', 'status', 'entry_source', 'notes',
+                        'created_at', 'updated_at'
+                    ];
+                    
+                    log('tableLog', `Expected columns: ${expectedColumns.join(', ')}`, 'info');
+                    testResults.table = true;
+                }
+            } catch (e) {
+                setStatus('tableSection', 'tableStatus', 'tableIcon', 'error', 'Exception');
+                log('tableLog', `❌ Exception: ${e.message}`, 'error');
+                testResults.table = false;
+            }
+        }
+        
+        // Test 4: Insert
+        async function testInsert() {
+            log('insertLog', 'Testing insert operation...');
+            
+            const testData = {
+                full_name: 'DIAGNOSTIC TEST - DELETE ME',
+                email: `diagnostic-test-${Date.now()}@example.com`,
+                phone: '(555) 999-0000',
+                year_of_birth: 1990,
+                num_children: 0,
+                status: 'pending',
+                entry_source: 'manual',
+                newsletter_opt_in: false
+            };
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('Sisterhood_signups')
+                    .insert([testData])
+                    .select();
+                
+                if (error) {
+                    setStatus('insertSection', 'insertStatus', 'insertIcon', 'error', 'Failed');
+                    log('insertLog', `❌ Insert failed: ${error.message}`, 'error');
+                    log('insertLog', `Code: ${error.code}`, 'error');
+                    
+                    if (error.code === 'PGRST116') {
+                        log('insertLog', 'This is likely an RLS (Row Level Security) policy issue', 'warning');
+                        log('insertLog', 'Make sure your RLS policies allow public inserts', 'warning');
+                    }
+                    testResults.insert = false;
+                } else {
+                    setStatus('insertSection', 'insertStatus', 'insertIcon', 'success', 'Success');
+                    log('insertLog', `✅ Insert successful!`, 'success');
+                    log('insertLog', `Created record with ID: ${data[0].id}`, 'success');
+                    log('insertLog', `Email: ${data[0].email}`, 'info');
+                    testResults.insert = true;
+                    
+                    if (testResults.connection && testResults.table && testResults.insert) {
+                        showNextSteps('all-good');
+                    }
+                }
+            } catch (e) {
+                setStatus('insertSection', 'insertStatus', 'insertIcon', 'error', 'Exception');
+                log('insertLog', `❌ Exception: ${e.message}`, 'error');
+                testResults.insert = false;
+            }
+        }
+        
+        // Test 5: Select
+        async function testSelect() {
+            log('selectLog', 'Testing select operation...');
+            
+            try {
+                const { data, error, count } = await supabaseClient
+                    .from('Sisterhood_signups')
+                    .select('*', { count: 'exact' })
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                if (error) {
+                    setStatus('selectSection', 'selectStatus', 'selectIcon', 'error', 'Failed');
+                    log('selectLog', `❌ Select failed: ${error.message}`, 'error');
+                    log('selectLog', `Code: ${error.code}`, 'error');
+                    testResults.select = false;
+                } else {
+                    setStatus('selectSection', 'selectStatus', 'selectIcon', 'success', 'Success');
+                    log('selectLog', `✅ Select successful!`, 'success');
+                    log('selectLog', `Total records in database: ${count}`, 'success');
+                    
+                    if (data.length > 0) {
+                        log('selectLog', `Latest records:`, 'info');
+                        data.forEach((record, i) => {
+                            log('selectLog', `  ${i + 1}. ${record.full_name} (${record.email})`, 'info');
+                        });
+                    } else {
+                        log('selectLog', `Database is empty - no records yet`, 'warning');
+                    }
+                    testResults.select = true;
+                }
+            } catch (e) {
+                setStatus('selectSection', 'selectStatus', 'selectIcon', 'error', 'Exception');
+                log('selectLog', `❌ Exception: ${e.message}`, 'error');
+                testResults.select = false;
+            }
+        }
+        
+        // Cleanup test data
+        async function cleanupTestData() {
+            log('insertLog', 'Cleaning up test data...');
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('Sisterhood_signups')
+                    .delete()
+                    .or('full_name.ilike.%TEST%,full_name.ilike.%DIAGNOSTIC%');
+                
+                if (error) {
+                    log('insertLog', `❌ Cleanup failed: ${error.message}`, 'error');
+                } else {
+                    log('insertLog', `✅ Test data cleaned up`, 'success');
+                }
+            } catch (e) {
+                log('insertLog', `❌ Exception: ${e.message}`, 'error');
+            }
+        }
+        
+        // Show next steps based on the issue
+        function showNextSteps(issue) {
+            const nextStepsDiv = document.getElementById('nextSteps');
+            const contentDiv = document.getElementById('nextStepsContent');
+            
+            let content = '';
+            
+            if (issue === 'table-missing') {
+                content = `
+                    <p><strong>⚠️ The database table doesn't exist yet!</strong></p>
+                    <ul>
+                        <li>Go to your Supabase Dashboard: <a href="https://supabase.com/dashboard/project/zagzyiyhomvwhhsibbxv" target="_blank" style="color: #60a5fa;">Open Dashboard</a></li>
+                        <li>Click <strong>SQL Editor</strong> in the left sidebar</li>
+                        <li>Click <strong>New Query</strong></li>
+                        <li>Copy the entire contents of <code>supabase-schema.sql</code> from this repository</li>
+                        <li>Paste it into the SQL editor and click <strong>Run</strong></li>
+                        <li>Return here and refresh the page</li>
+                    </ul>
+                `;
+            } else if (issue === 'rls-policy') {
+                content = `
+                    <p><strong>⚠️ Row Level Security (RLS) policy issue!</strong></p>
+                    <ul>
+                        <li>The table exists but RLS policies are blocking access</li>
+                        <li>Make sure you ran the COMPLETE SQL from <code>supabase-schema.sql</code></li>
+                        <li>The SQL includes RLS policies that allow public access</li>
+                        <li>If you created the table manually, you need to set up RLS policies</li>
+                    </ul>
+                `;
+            } else if (issue === 'all-good') {
+                content = `
+                    <p><strong>✅ Everything looks good!</strong></p>
+                    <ul>
+                        <li>Database connection is working</li>
+                        <li>Table structure is correct</li>
+                        <li>Insert and select permissions are working</li>
+                        <li>Your signup form should work now!</li>
+                        <li>Try submitting the signup form and check the admin dashboard</li>
+                    </ul>
+                `;
+                nextStepsDiv.style.borderLeftColor = '#10b981';
+            } else {
+                content = `
+                    <p><strong>⚠️ There's an issue with the database connection</strong></p>
+                    <ul>
+                        <li>Check the error messages above for details</li>
+                        <li>Verify your Supabase credentials are correct</li>
+                        <li>Make sure you ran the SQL from <code>supabase-schema.sql</code></li>
+                        <li>Try refreshing this page</li>
+                    </ul>
+                `;
+            }
+            
+            contentDiv.innerHTML = content;
+            nextStepsDiv.style.display = 'block';
+        }
+        
+        // Run all tests on load
+        async function runAllTests() {
+            testConfiguration();
+            await testConnection();
+            await checkTableStructure();
+        }
+        
+        runAllTests();
+    </script>
+</body>
+</html>

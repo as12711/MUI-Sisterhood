@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test - Sisterhood Initiative</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1A1A2E;
+            color: #EAEAEA;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #4ADE80;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #94A3B8;
+            margin-bottom: 32px;
+        }
+        
+        .card {
+            background: #16213E;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #2D3A5C;
+        }
+        
+        .card h2 {
+            color: #C9A227;
+            font-size: 1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-pending { background: #374151; color: #9CA3AF; }
+        .status-success { background: #065F46; color: #34D399; }
+        .status-error { background: #7F1D1D; color: #FCA5A5; }
+        
+        .log-entry {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.875rem;
+            padding: 8px 12px;
+            background: #0D1321;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid #4ADE80;
+        }
+        
+        .log-entry.error {
+            border-left-color: #F87171;
+            color: #FCA5A5;
+        }
+        
+        .log-entry.info {
+            border-left-color: #60A5FA;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .btn-primary {
+            background: #1B5E20;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2E7D32;
+        }
+        
+        .btn-secondary {
+            background: #374151;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #DC2626;
+            color: white;
+        }
+        
+        .config-display {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.8rem;
+            background: #0D1321;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        
+        .config-display .key {
+            color: #C9A227;
+        }
+        
+        .config-display .value {
+            color: #4ADE80;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #2D3A5C;
+            font-size: 0.875rem;
+        }
+        
+        th {
+            color: #94A3B8;
+            font-weight: 600;
+        }
+        
+        .nav-links {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #2D3A5C;
+        }
+        
+        .nav-links a {
+            color: #60A5FA;
+            text-decoration: none;
+            margin-right: 24px;
+        }
+        
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Supabase Connection Test</h1>
+        <p class="subtitle">Sisterhood Initiative Database Diagnostics</p>
+        
+        <!-- Config Display -->
+        <div class="card">
+            <h2>📋 Configuration</h2>
+            <div class="config-display">
+                <span class="key">SUPABASE_URL:</span> <span class="value" id="configUrl">Loading...</span><br>
+                <span class="key">SUPABASE_KEY:</span> <span class="value" id="configKey">Loading...</span><br>
+                <span class="key">TABLE_NAME:</span> <span class="value">Sisterhood_signups</span>
+            </div>
+        </div>
+        
+        <!-- Connection Test -->
+        <div class="card">
+            <h2>🔌 Connection Status <span class="status status-pending" id="connStatus">Testing...</span></h2>
+            <div id="connLog"></div>
+        </div>
+        
+        <!-- Table Structure -->
+        <div class="card">
+            <h2>📊 Table Structure <span class="status status-pending" id="tableStatus">Checking...</span></h2>
+            <div id="tableLog"></div>
+            <div id="tableStructure"></div>
+        </div>
+        
+        <!-- Data Test -->
+        <div class="card">
+            <h2>📝 Data Operations</h2>
+            <button class="btn btn-primary" onclick="testInsert()">Test Insert</button>
+            <button class="btn btn-secondary" onclick="fetchRecords()">Fetch Records</button>
+            <button class="btn btn-danger" onclick="deleteTestRecord()">Delete Test Record</button>
+            <div id="dataLog" style="margin-top: 16px;"></div>
+            <div id="recordsTable"></div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="nav-links">
+            <a href="signup.html">→ Signup Form</a>
+            <a href="admin.html">→ Admin Dashboard</a>
+        </div>
+    </div>
+    
+    <script>
+        const SUPABASE_URL = 'https://zagzyiyhomvwhhsibbxv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZ3p5aXlob212d2hoc2liYnh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1NTAyODQsImV4cCI6MjA4MTEyNjI4NH0.oVaFmhT2t44v45TEq4e_FtAfyqG1-or-0d4VTeOtxNE';
+        const TABLE_NAME = 'Sisterhood_signups';
+        
+        // Use a different variable name to avoid conflict with global 'supabase' from CDN
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Display config
+        document.getElementById('configUrl').textContent = SUPABASE_URL;
+        document.getElementById('configKey').textContent = SUPABASE_ANON_KEY.slice(0, 20) + '...' + SUPABASE_ANON_KEY.slice(-10);
+        
+        function log(containerId, message, isError = false) {
+            const container = document.getElementById(containerId);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${isError ? 'error' : 'info'}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(entry);
+        }
+        
+        function setStatus(elementId, status) {
+            const el = document.getElementById(elementId);
+            el.className = `status status-${status}`;
+            el.textContent = status === 'success' ? '✓ OK' : status === 'error' ? '✗ Error' : 'Testing...';
+        }
+        
+        // Test connection
+        async function testConnection() {
+            try {
+                log('connLog', 'Testing Supabase connection...');
+                
+                const { data, error } = await supabaseClient.from(TABLE_NAME).select('id').limit(1);
+                
+                if (error) {
+                    log('connLog', `Error: ${error.message} (Code: ${error.code})`, true);
+                    setStatus('connStatus', 'error');
+                    
+                    if (error.code === '42P01') {
+                        log('connLog', 'Table does not exist! Run the SQL in supabase-schema.sql', true);
+                    }
+                } else {
+                    log('connLog', 'Connection successful!');
+                    log('connLog', `Table exists, found ${data?.length || 0} record(s) in test query`);
+                    setStatus('connStatus', 'success');
+                }
+            } catch (e) {
+                log('connLog', `Exception: ${e.message}`, true);
+                setStatus('connStatus', 'error');
+            }
+        }
+        
+        // Check table structure
+        async function checkTable() {
+            try {
+                log('tableLog', 'Checking table structure...');
+                
+                const { data, error } = await supabaseClient.from(TABLE_NAME).select('*').limit(0);
+                
+                if (error) {
+                    log('tableLog', `Error: ${error.message}`, true);
+                    setStatus('tableStatus', 'error');
+                } else {
+                    log('tableLog', 'Table accessible');
+                    setStatus('tableStatus', 'success');
+                    
+                    // Show expected columns
+                    const expectedCols = ['id', 'full_name', 'email', 'phone', 'year_of_birth', 
+                        'num_children', 'children_ages', 'referral_source', 'goals', 
+                        'newsletter_opt_in', 'status', 'entry_source', 'notes', 'created_at'];
+                    
+                    let html = '<table><tr><th>Expected Column</th><th>Type</th></tr>';
+                    expectedCols.forEach(col => {
+                        html += `<tr><td>${col}</td><td style="color:#94A3B8">-</td></tr>`;
+                    });
+                    html += '</table>';
+                    document.getElementById('tableStructure').innerHTML = html;
+                }
+            } catch (e) {
+                log('tableLog', `Exception: ${e.message}`, true);
+                setStatus('tableStatus', 'error');
+            }
+        }
+        
+        // Test insert
+        async function testInsert() {
+            const testData = {
+                full_name: 'TEST USER - DELETE ME',
+                email: `test-${Date.now()}@example.com`,
+                phone: '(555) 000-0000',
+                year_of_birth: 1990,
+                num_children: 1,
+                status: 'pending',
+                entry_source: 'manual',
+                newsletter_opt_in: false
+            };
+            
+            log('dataLog', `Inserting test record: ${testData.email}`);
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from(TABLE_NAME)
+                    .insert([testData])
+                    .select();
+                
+                if (error) {
+                    log('dataLog', `Insert failed: ${error.message} (Code: ${error.code})`, true);
+                } else {
+                    log('dataLog', `Insert successful! ID: ${data[0].id}`);
+                    window.lastTestId = data[0].id;
+                }
+            } catch (e) {
+                log('dataLog', `Exception: ${e.message}`, true);
+            }
+        }
+        
+        // Fetch records
+        async function fetchRecords() {
+            log('dataLog', 'Fetching records...');
+            
+            try {
+                const { data, error, count } = await supabaseClient
+                    .from(TABLE_NAME)
+                    .select('*', { count: 'exact' })
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                if (error) {
+                    log('dataLog', `Fetch failed: ${error.message}`, true);
+                } else {
+                    log('dataLog', `Found ${count} total records. Showing first 5:`);
+                    
+                    if (data.length > 0) {
+                        let html = '<table><tr><th>Name</th><th>Email</th><th>Status</th><th>Created</th></tr>';
+                        data.forEach(r => {
+                            const date = new Date(r.created_at).toLocaleDateString();
+                            html += `<tr><td>${r.full_name}</td><td>${r.email}</td><td>${r.status}</td><td>${date}</td></tr>`;
+                        });
+                        html += '</table>';
+                        document.getElementById('recordsTable').innerHTML = html;
+                    }
+                }
+            } catch (e) {
+                log('dataLog', `Exception: ${e.message}`, true);
+            }
+        }
+        
+        // Delete test record
+        async function deleteTestRecord() {
+            log('dataLog', 'Deleting test records...');
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from(TABLE_NAME)
+                    .delete()
+                    .like('full_name', 'TEST USER%');
+                
+                if (error) {
+                    log('dataLog', `Delete failed: ${error.message}`, true);
+                } else {
+                    log('dataLog', 'Test records deleted');
+                }
+            } catch (e) {
+                log('dataLog', `Exception: ${e.message}`, true);
+            }
+        }
+        
+        // Run tests on load
+        testConnection();
+        checkTable();
+    </script>
+</body>
+</html>
+

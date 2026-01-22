@@ -1,0 +1,12 @@
+{
+  "window.title": "🟣 SISTERHOOD INITIATIVE - MUI-Sisterhood",
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#9C27B0",
+    "titleBar.activeForeground": "#FFFFFF",
+    "statusBar.background": "#9C27B0",
+    "statusBar.foreground": "#FFFFFF"
+  },
+  "git.confirmSync": true,
+  "git.confirmPush": true,
+  "git.confirmEmptyCommits": true
+}
